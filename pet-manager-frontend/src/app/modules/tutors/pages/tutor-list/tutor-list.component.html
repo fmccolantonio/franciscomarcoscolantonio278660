@@ -1,0 +1,46 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-purple-800 mb-8">Gestão de Tutores 👥</h1>
+
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8 border-t-4 border-purple-500">
+      <form [formGroup]="tutorForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Nome Completo</label>
+          <input formControlName="nome" type="text" class="mt-1 w-full p-2 border rounded">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Telefone</label>
+          <input formControlName="telefone" type="text" class="mt-1 w-full p-2 border rounded">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <input formControlName="email" type="email" class="mt-1 w-full p-2 border rounded">
+        </div>
+
+        <div class="md:col-span-3">
+          <button type="submit" [disabled]="tutorForm.invalid"
+                  class="bg-purple-600 text-white font-bold py-2 px-6 rounded hover:bg-purple-700 disabled:bg-gray-400">
+            Cadastrar Tutor
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4">
+      <div *ngFor="let tutor of facade.tutors$ | async" 
+           class="bg-white p-4 rounded shadow flex justify-between items-center">
+        <div>
+          <h3 class="text-lg font-bold">{{ tutor.nome }}</h3>
+          <p class="text-gray-600">{{ tutor.email }} • {{ tutor.telefone }}</p>
+        </div>
+        <button (click)="facade.removeTutor(tutor.id!)" class="text-red-500 hover:text-red-700">
+          Excluir
+        </button>
+      </div>
+    </div>
+    
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+  <div class="max-w-4xl mx-auto">
+    
+    <h1 class="text-3xl font-bold text-blue-800 mb-8">Gerenciador de Pets 🐾</h1>
+
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">Adicionar Novo Pet</h2>
+      
+      <form [formGroup]="petForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Nome</label>
+          <input formControlName="nome" type="text" class="mt-1 block w-full rounded border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Espécie (Cão, Gato...)</label>
+          <input formControlName="especie" type="text" class="mt-1 block w-full rounded border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Raça</label>
+          <input formControlName="raca" type="text" class="mt-1 block w-full rounded border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Idade</label>
+          <input formControlName="idade" type="number" class="mt-1 block w-full rounded border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div class="md:col-span-2">
+          <button type="submit" 
+                  [disabled]="petForm.invalid"
+                  class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 disabled:bg-gray-400">
+            Salvar Pet
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Lista de Pets Cadastrados</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div *ngFor="let pet of facade.pets$ | async" class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500 hover:shadow-lg transition">
+        <h3 class="text-lg font-bold text-gray-800">{{ pet.nome }}</h3>
+        <p class="text-sm text-gray-600">{{ pet.especie }} • {{ pet.raca }}</p>
+        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-2">
+          {{ pet.idade }} anos
+        </span>
+      </div>
+    </div>
+
+    <div *ngIf="(facade.pets$ | async)?.length === 0" class="text-center text-gray-500 py-8">
+      Nenhum pet encontrado. Cadastre o primeiro acima! ☝️
+    </div>
+
+  </div>
+</div>
