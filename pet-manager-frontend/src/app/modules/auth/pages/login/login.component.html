@@ -1,0 +1,42 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+  <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-blue-600">
+    
+    <div class="text-center mb-8">
+      <div class="text-6xl mb-2">🐾</div>
+      <h1 class="text-2xl font-bold text-gray-800">Pet Manager</h1>
+      <p class="text-gray-500">Acesso Restrito</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Usuário</label>
+        <input formControlName="usuario" type="text" 
+               class="mt-1 w-full p-3 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+               placeholder="Digite seu usuário">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Senha</label>
+        <input formControlName="senha" type="password" 
+               class="mt-1 w-full p-3 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+               placeholder="Digite sua senha">
+      </div>
+
+      <div *ngIf="erroLogin" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+        <span class="block sm:inline">Usuário ou senha inválidos.</span>
+      </div>
+
+      <button type="submit" [disabled]="loginForm.invalid || carregando"
+              class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded hover:bg-blue-700 transition disabled:bg-gray-400 flex justify-center">
+        <span *ngIf="!carregando">Entrar</span>
+        <span *ngIf="carregando">Carregando...</span>
+      </button>
+
+    </form>
+    
+    <div class="mt-6 text-center text-xs text-gray-400">
+      &copy; 2026 Processo Seletivo Sênior
+    </div>
+  </div>
+</div>

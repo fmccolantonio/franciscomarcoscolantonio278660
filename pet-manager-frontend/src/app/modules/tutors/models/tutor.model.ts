@@ -3,4 +3,5 @@ export interface Tutor {
   nome: string;
   telefone: string;
   email: string;
+  pets?: any[]; // <--- Adicionamos isso para o erro sumir
 }

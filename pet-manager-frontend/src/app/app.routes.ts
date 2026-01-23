@@ -1,18 +1,26 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  // Rota padrão: redireciona para /pets
-  { path: '', redirectTo: 'pets', pathMatch: 'full' },
-  
-  // Lazy Loading: só baixa o código de Pets quando o usuário clicar
+  // Rota de Login (Pública)
   {
-    path: 'pets',
-    loadChildren: () => import('./modules/pets/pets.module').then(m => m.PetsModule)
+    path: 'login',
+    loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule)
   },
   
-  // Lazy Loading de Tutores
+  // Rotas Protegidas (Precisam de Login)
+  {
+    path: 'pets',
+    loadChildren: () => import('./modules/pets/pets.module').then(m => m.PetsModule),
+    canActivate: [authGuard] // <--- O Guardião está aqui
+  },
   {
     path: 'tutores',
-    loadChildren: () => import('./modules/tutors/tutors.module').then(m => m.TutorsModule)
-  }
+    loadChildren: () => import('./modules/tutors/tutors.module').then(m => m.TutorsModule),
+    canActivate: [authGuard]
+  },
+
+  // Redirecionamentos
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '**', redirectTo: 'login' }
 ];

@@ -1,44 +1,86 @@
 <div class="p-6 bg-gray-50 min-h-screen">
-  <div class="max-w-4xl mx-auto">
+  <div class="max-w-5xl mx-auto">
     <h1 class="text-3xl font-bold text-purple-800 mb-8">Gestão de Tutores 👥</h1>
 
-    <div class="bg-white p-6 rounded-lg shadow-md mb-8 border-t-4 border-purple-500">
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8 border-t-4" 
+         [ngClass]="isEditing ? 'border-orange-500' : 'border-purple-500'">
+      
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">
+        {{ isEditing ? '✏️ Editando Tutor' : '✨ Novo Tutor' }}
+      </h2>
+
       <form [formGroup]="tutorForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
         <div>
           <label class="block text-sm font-medium text-gray-700">Nome Completo</label>
           <input formControlName="nome" type="text" class="mt-1 w-full p-2 border rounded">
         </div>
-
         <div>
           <label class="block text-sm font-medium text-gray-700">Telefone</label>
           <input formControlName="telefone" type="text" class="mt-1 w-full p-2 border rounded">
         </div>
-
         <div>
           <label class="block text-sm font-medium text-gray-700">Email</label>
           <input formControlName="email" type="email" class="mt-1 w-full p-2 border rounded">
         </div>
 
-        <div class="md:col-span-3">
+        <div class="md:col-span-3 flex gap-2">
           <button type="submit" [disabled]="tutorForm.invalid"
-                  class="bg-purple-600 text-white font-bold py-2 px-6 rounded hover:bg-purple-700 disabled:bg-gray-400">
-            Cadastrar Tutor
+                  [ngClass]="isEditing ? 'bg-orange-600' : 'bg-purple-600'"
+                  class="text-white font-bold py-2 px-6 rounded hover:opacity-90 disabled:bg-gray-400">
+            {{ isEditing ? 'Salvar Alterações' : 'Cadastrar Tutor' }}
+          </button>
+          
+          <button *ngIf="isEditing" type="button" (click)="cancelEdit()"
+                  class="bg-gray-500 text-white font-bold py-2 px-6 rounded hover:bg-gray-600">
+            Cancelar
           </button>
         </div>
       </form>
     </div>
 
-    <div class="grid grid-cols-1 gap-4">
+    <div class="grid grid-cols-1 gap-6">
       <div *ngFor="let tutor of facade.tutors$ | async" 
-           class="bg-white p-4 rounded shadow flex justify-between items-center">
-        <div>
-          <h3 class="text-lg font-bold">{{ tutor.nome }}</h3>
-          <p class="text-gray-600">{{ tutor.email }} • {{ tutor.telefone }}</p>
+           class="bg-white p-6 rounded-lg shadow border-l-4 border-purple-200">
+        
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-xl font-bold text-gray-800">{{ tutor.nome }}</h3>
+            <p class="text-gray-600">{{ tutor.email }} • 📞 {{ tutor.telefone }}</p>
+          </div>
+          <div class="flex gap-2">
+            <button (click)="onEdit(tutor)" class="text-blue-600 hover:text-blue-800 font-medium">Editar</button>
+            <span class="text-gray-300">|</span>
+            <button (click)="facade.removeTutor(tutor.id!)" class="text-red-500 hover:text-red-700 font-medium">Excluir</button>
+          </div>
         </div>
-        <button (click)="facade.removeTutor(tutor.id!)" class="text-red-500 hover:text-red-700">
-          Excluir
-        </button>
+
+        <div class="bg-gray-50 p-4 rounded-md">
+          <div class="flex justify-between items-center mb-2">
+            <h4 class="font-bold text-sm text-gray-500 uppercase">🐶 Pets Vinculados</h4>
+            <button (click)="abrirVinculo(tutor.id!)" class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200">
+              {{ tutorSelecionadoParaVinculo === tutor.id ? 'Fechar' : '+ Vincular Pet' }}
+            </button>
+          </div>
+
+          <div *ngIf="tutorSelecionadoParaVinculo === tutor.id" class="mb-4 flex gap-2">
+            <input type="number" [(ngModel)]="petIdParaVincular" placeholder="ID do Pet" 
+                   class="border p-1 rounded text-sm w-24">
+            <button (click)="vincularPet(tutor.id!)" class="bg-green-600 text-white text-xs px-3 py-1 rounded">Confirmar</button>
+          </div>
+
+          <div class="space-y-2">
+             <div *ngIf="!tutor['pets'] || tutor['pets'].length === 0" class="text-sm text-gray-400 italic">
+               Nenhum pet vinculado visível na lista.
+             </div>
+
+             <div *ngFor="let pet of tutor['pets']" class="flex justify-between items-center bg-white p-2 rounded border border-gray-100">
+                <span class="text-sm font-medium">{{ pet.nome }} <span class="text-gray-400 text-xs">({{ pet.raca }})</span></span>
+                <button (click)="removerPet(tutor.id!, pet.id)" class="text-red-400 hover:text-red-600 text-xs">Desvincular</button>
+             </div>
+          </div>
+
+        </div>
+
       </div>
     </div>
     
