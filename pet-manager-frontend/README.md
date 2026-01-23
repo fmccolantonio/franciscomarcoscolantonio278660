@@ -1,59 +1,59 @@
-# PetManagerFrontend
+# Pet Manager - Front End (Processo Seletivo Sênior)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.1.
+Este projeto é uma solução SPA (Single Page Application) desenvolvida em Angular para o gerenciamento de Pets e Tutores.
 
-## Development server
+## 🚀 Tecnologias e Arquitetura
 
-To start a local development server, run:
+O projeto foi construído seguindo rigorosamente os requisitos do Edital, com foco em escalabilidade e manutenibilidade.
 
+* **Framework:** Angular (v17+ Standalone Components)
+* **Estilização:** Tailwind CSS (Responsividade e Design System)
+* **Gerenciamento de Estado:** Padrão **Facade** com `BehaviorSubject` (RxJS) para reatividade e cache local.
+* **Rotas:** Lazy Loading implementado para módulos `Pets` e `Tutores`.
+* **Formulários:** Reactive Forms com validação tipada.
+* **Segurança:** Autenticação JWT com Interceptor HTTP e AuthGuard.
+* **Infraestrutura:** Docker e Nginx para containerização.
+
+## 📋 Funcionalidades Implementadas
+
+### Módulo de Pets
+* [x] Listagem com Paginação e Busca por nome.
+* [x] Cadastro e Edição (CRUD).
+* [x] Upload de Foto do Pet.
+* [x] Visualização em Cards responsivos.
+
+### Módulo de Tutores
+* [x] CRUD Completo de Tutores.
+* [x] **Vinculação Sênior:** Gerenciamento de vínculo Pet-Tutor diretamente na interface.
+* [x] Listagem aninhada de pets por tutor.
+
+### Autenticação
+* [x] Tela de Login.
+* [x] Proteção de rotas (Guard).
+* [x] Interceptor para envio automático de Token.
+
+## 🐳 Como Executar (Docker)
+
+A aplicação está totalmente containerizada.
+
+1.  **Construir a imagem:**
+    ```bash
+    docker build -t pet-manager .
+    ```
+
+2.  **Rodar o container:**
+    ```bash
+    docker run -p 80:80 pet-manager
+    ```
+
+3.  Acesse em: `http://localhost`
+
+## 🧪 Testes
+
+Para executar os testes unitários:
 ```bash
-ng serve
+npm test
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+---
+*Desenvolvido como parte do Processo Seletivo Simplificado.*
