@@ -1,105 +1,145 @@
-<div class="p-6 bg-gray-50 min-h-screen">
-  <div class="max-w-6xl mx-auto">
-    
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold text-blue-800">Gerenciador de Pets 🐾</h1>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+    <div>
+      <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Meus Pets</h1>
+      <p class="text-slate-500 mt-2 text-lg">Gerencie os animais cadastrados no sistema.</p>
     </div>
+    
+    <div class="flex gap-3 w-full md:w-auto">
+      <div class="relative w-full md:w-72">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <input 
+          type="text" 
+          placeholder="Buscar pet..." 
+          (input)="onSearch($event)"
+          class="pl-10 block w-full border-slate-200 rounded-xl text-sm focus:ring-indigo-500 focus:border-indigo-500 shadow-sm py-2.5"
+        >
+      </div>
+      <button (click)="onNewPet()" 
+              class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300 transition-all flex items-center gap-2 whitespace-nowrap active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+          <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+        </svg>
+        Novo Pet
+      </button>
+    </div>
+  </div>
 
-    <div class="bg-white p-6 rounded-lg shadow-md mb-8 border-t-4" [ngClass]="isEditing ? 'border-orange-500' : 'border-blue-500'">
-      <h2 class="text-xl font-semibold mb-4 text-gray-700">
-        {{ isEditing ? '✏️ Editando Pet' : '✨ Adicionar Novo Pet' }}
-      </h2>
+  <div *ngIf="facade.loading$ | async" class="flex justify-center py-12">
+    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+  </div>
+
+  <div *ngIf="showForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in-up">
+      <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+        <h2 class="text-xl font-bold text-slate-800">
+          {{ isEditing ? 'Editar Pet' : 'Adicionar Novo Pet' }}
+        </h2>
+        <button (click)="onCancel()" class="text-slate-400 hover:text-slate-600">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
       
-      <form [formGroup]="petForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700">Nome</label>
-          <input formControlName="nome" type="text" class="mt-1 w-full p-2 border rounded">
+      <form [formGroup]="petForm" (ngSubmit)="onSubmit()" class="p-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="col-span-2 md:col-span-1">
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Nome do Pet</label>
+            <input formControlName="nome" class="w-full border-slate-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+          </div>
+
+          <div class="col-span-2 md:col-span-1">
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Raça</label>
+            <input formControlName="raca" class="w-full border-slate-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+          </div>
+
+          <div class="col-span-2 md:col-span-1">
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Idade (anos)</label>
+            <input type="number" formControlName="idade" class="w-full border-slate-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+          </div>
+
+          <div class="col-span-2 bg-indigo-50/50 p-4 rounded-xl border border-dashed border-indigo-200" *ngIf="!isEditing">
+            <label class="block text-sm font-medium text-indigo-900 mb-2">Foto do Pet</label>
+            <input type="file" (change)="onFileSelected($event)" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 cursor-pointer transition-colors">
+          </div>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Espécie</label>
-          <input formControlName="especie" type="text" placeholder="Ex: Cão" class="mt-1 w-full p-2 border rounded">
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Raça</label>
-          <input formControlName="raca" type="text" class="mt-1 w-full p-2 border rounded">
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Idade</label>
-          <input formControlName="idade" type="number" class="mt-1 w-full p-2 border rounded">
-        </div>
-
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700">Foto do Pet</label>
-          <input type="file" (change)="onFileSelected($event)" class="mt-1 w-full p-2 border rounded text-sm text-gray-500">
-        </div>
-
-        <div class="md:col-span-4 flex gap-2 mt-2">
-          <button type="submit" [disabled]="petForm.invalid"
-                  [ngClass]="isEditing ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'"
-                  class="flex-1 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400 transition">
-            {{ isEditing ? 'Salvar Alterações' : 'Cadastrar Pet' }}
-          </button>
-          
-          <button *ngIf="isEditing" type="button" (click)="onCancelEdit()"
-                  class="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600">
+        <div class="flex justify-end gap-3 mt-8">
+          <button type="button" (click)="onCancel()" class="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors">
             Cancelar
+          </button>
+          <button type="submit" [disabled]="petForm.invalid" class="bg-indigo-600 text-white px-8 py-2.5 rounded-lg font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300 disabled:opacity-50 disabled:shadow-none transition-all">
+            Salvar Dados
           </button>
         </div>
       </form>
     </div>
+  </div>
 
-    <div class="flex gap-2 mb-6">
-      <input [(ngModel)]="filtroNome" (keyup.enter)="onSearch()" 
-             type="text" placeholder="🔍 Buscar pet por nome..." 
-             class="flex-1 p-3 border rounded shadow-sm">
-      <button (click)="onSearch()" class="bg-blue-600 text-white px-6 rounded hover:bg-blue-700">Buscar</button>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <div *ngFor="let pet of facade.pets$ | async" 
-           class="bg-white rounded-lg shadow hover:shadow-xl transition duration-300 overflow-hidden flex flex-col">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    <div *ngFor="let pet of facade.pets$ | async" 
+         class="group bg-white rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden border border-slate-100 flex flex-col">
+      
+      <div class="relative h-56 bg-slate-100 overflow-hidden">
+        <img *ngIf="pet.foto?.url" [src]="pet.foto!.url" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
+        <div *ngIf="!pet.foto?.url" class="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-16 h-16 mb-2 opacity-50">
+            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+          </svg>
+          <span class="text-sm font-medium">Sem foto</span>
+        </div>
         
-        <div class="h-48 bg-gray-200 w-full flex items-center justify-center overflow-hidden relative">
-           <img *ngIf="pet.foto" [src]="pet.foto" alt="Foto do Pet" class="w-full h-full object-cover">
-           <span *ngIf="!pet.foto" class="text-4xl">🐶</span>
+        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur text-slate-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+          {{ pet.idade }} {{ pet.idade === 1 ? 'ano' : 'anos' }}
+        </div>
+      </div>
+
+      <div class="p-6 flex flex-col flex-1">
+        <div class="mb-4">
+          <h3 class="text-xl font-bold text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors truncate">{{ pet.nome }}</h3>
+          <p class="text-sm font-medium text-slate-500 bg-slate-100 inline-block px-2 py-0.5 rounded">{{ pet.raca }}</p>
         </div>
 
-        <div class="p-4 flex-1">
-          <div class="flex justify-between items-start">
-            <h3 class="text-xl font-bold text-gray-800 mb-1">{{ pet.nome }}</h3>
-            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{{ pet.idade }} anos</span>
-          </div>
-          <p class="text-gray-600 text-sm mb-4">{{ pet.especie }} • {{ pet.raca }}</p>
-          
-          <button (click)="onEdit(pet)" class="w-full mt-auto bg-blue-50 text-blue-600 border border-blue-200 py-2 rounded hover:bg-blue-100 transition">
-            Editar / Foto
+        <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
+          <button (click)="onEdit(pet)" class="flex-1 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+              <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+              <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+            </svg>
+            Editar
+          </button>
+          <div class="w-px h-4 bg-slate-200"></div>
+          <button (click)="onDelete(pet.id)" class="px-3 text-slate-400 hover:text-red-500 hover:bg-red-50 py-2 rounded-lg transition-colors" title="Excluir">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+              <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+            </svg>
           </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <div *ngIf="(facade.pets$ | async)?.length === 0" class="text-center text-gray-500 py-12 bg-white rounded shadow-sm">
-      <p class="text-xl mb-2">Nenhum pet encontrado. 😢</p>
-      <p class="text-sm">Tente buscar outro nome ou cadastre um novo.</p>
+  <div *ngIf="(facade.pets$ | async)?.length === 0 && !(facade.loading$ | async)" class="text-center py-20">
+    <div class="bg-indigo-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+      <span class="text-4xl">🐶</span>
     </div>
-
-    <div class="flex justify-center items-center gap-4 mt-8" *ngIf="(facade.pets$ | async)?.length !== 0">
-      <button (click)="mudarPagina(-1)" [disabled]="facade.currentPage === 0"
-              class="bg-white border px-4 py-2 rounded shadow hover:bg-gray-50 disabled:opacity-50">
-        ⬅️ Anterior
-      </button>
-      
-      <span class="font-semibold text-gray-700">Página {{ facade.currentPage + 1 }}</span>
-
-      <button (click)="mudarPagina(1)"
-              class="bg-white border px-4 py-2 rounded shadow hover:bg-gray-50">
-        Próximo ➡️
-      </button>
-    </div>
-
+    <h3 class="text-xl font-bold text-slate-800 mb-2">Nenhum pet encontrado</h3>
+    <p class="text-slate-500 max-w-sm mx-auto mb-8">Comece adicionando seu primeiro amigo de quatro patas ao sistema.</p>
+    <button (click)="onNewPet()" class="text-indigo-600 font-semibold hover:text-indigo-700">Adicionar agora &rarr;</button>
+  </div>
+  
+  <div class="flex justify-center items-center gap-4 mt-12 mb-12" *ngIf="(facade.pets$ | async)?.length">
+    <button class="px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50" (click)="facade.loadPets(0)">
+      Anterior
+    </button>
+    <button class="px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all" (click)="facade.loadPets(1)">
+      Próxima
+    </button>
   </div>
 </div>

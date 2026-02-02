@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms'; // <--- Necessário para o formulário
 import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 
@@ -9,11 +9,12 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [LoginComponent],
+  declarations: [
+    LoginComponent
+  ],
   imports: [
     CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
+    ReactiveFormsModule, // <--- Importante!
     RouterModule.forChild(routes)
   ]
 })

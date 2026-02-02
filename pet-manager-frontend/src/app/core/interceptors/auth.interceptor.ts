@@ -1,29 +1,19 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { AuthService } from '../auth/auth.service'; // Ajuste o import se seu service estiver em outro lugar
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('token');
-  const router = inject(Router);
+  const authService = inject(AuthService);
+  const token = authService.getToken();
 
-  // Clona a requisição e adiciona o cabeçalho se tiver token
+  // Se tiver token, clona a requisição e adiciona o cabeçalho
   if (token) {
-    req = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
+    const cloned = req.clone({
+      setHeaders: { Authorization: `Bearer ${token}` }
     });
+    return next(cloned);
   }
 
-  return next(req).pipe(
-    catchError((err) => {
-      // Se der erro 401 (Não autorizado), manda pro login
-      if (err.status === 401 || err.status === 403) {
-        localStorage.removeItem('token');
-        router.navigate(['/login']);
-      }
-      return throwError(() => err);
-    })
-  );
+  // Se não tiver token (ex: tela de login), manda normal
+  return next(req);
 };

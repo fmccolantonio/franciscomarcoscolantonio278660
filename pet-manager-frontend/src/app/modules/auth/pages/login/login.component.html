@@ -1,42 +1,49 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
-  <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-blue-600">
+<div class="min-h-screen bg-gradient-to-br from-blue-900 to-gray-900 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
     
-    <div class="text-center mb-8">
-      <div class="text-6xl mb-2">🐾</div>
-      <h1 class="text-2xl font-bold text-gray-800">Pet Manager</h1>
-      <p class="text-gray-500">Acesso Restrito</p>
+    <div class="bg-blue-600 p-8 text-center">
+      <h1 class="text-3xl font-bold text-white mb-2">Pet Manager</h1>
+      <p class="text-blue-100">Acesse para gerenciar pets e tutores</p>
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Usuário</label>
-        <input formControlName="usuario" type="text" 
-               class="mt-1 w-full p-3 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-               placeholder="Digite seu usuário">
-      </div>
+    <div class="p-8 pt-10">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+        
+        <div *ngIf="errorMessage" class="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm font-medium border border-red-100 flex items-center gap-2">
+          ⚠️ {{ errorMessage }}
+        </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Senha</label>
-        <input formControlName="senha" type="password" 
-               class="mt-1 w-full p-3 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-               placeholder="Digite sua senha">
-      </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">Usuário</label>
+          <input formControlName="username" type="text" 
+                 class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                 placeholder="Digite seu usuário">
+        </div>
 
-      <div *ngIf="erroLogin" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-        <span class="block sm:inline">Usuário ou senha inválidos.</span>
-      </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">Senha</label>
+          <input formControlName="password" type="password" 
+                 class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                 placeholder="••••••••">
+        </div>
 
-      <button type="submit" [disabled]="loginForm.invalid || carregando"
-              class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded hover:bg-blue-700 transition disabled:bg-gray-400 flex justify-center">
-        <span *ngIf="!carregando">Entrar</span>
-        <span *ngIf="carregando">Carregando...</span>
-      </button>
+        <button type="submit" [disabled]="loginForm.invalid || isLoading"
+                class="bg-blue-600 text-white font-bold py-3.5 rounded-lg shadow-lg hover:bg-blue-700 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed mt-2">
+          <span *ngIf="!isLoading">ENTRAR</span>
+          <span *ngIf="isLoading" class="flex items-center justify-center gap-2">
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Autenticando...
+          </span>
+        </button>
 
-    </form>
+      </form>
+    </div>
     
-    <div class="mt-6 text-center text-xs text-gray-400">
-      &copy; 2026 Processo Seletivo Sênior
+    <div class="bg-gray-50 p-4 text-center text-xs text-gray-400 border-t">
+      &copy; 2026 Pet Manager System
     </div>
   </div>
 </div>

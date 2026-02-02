@@ -1,28 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TutorsFacade } from '../../state/tutors.facade';
-import { Tutor } from '../../models/tutor.model';
+import { TutorRequest } from '../../models/tutor.model';
 
 @Component({
   selector: 'app-tutor-list',
-  standalone: false,
   templateUrl: './tutor-list.component.html',
-  styles: []
+  styleUrls: ['./tutor-list.scss'],
+  standalone: false // <--- SOLUÇÃO DO PROBLEMA
 })
 export class TutorListComponent implements OnInit {
   tutorForm: FormGroup;
+  showForm = false;
   isEditing = false;
-  
-  // Controle de Vínculo
-  tutorSelecionadoParaVinculo: number | null = null;
-  petIdParaVincular: number | null = null;
+  editingId: number | null = null;
+  selectedTutorId: number | null = null;
 
-  constructor(public facade: TutorsFacade, private fb: FormBuilder) {
+  constructor(
+    public facade: TutorsFacade,
+    private fb: FormBuilder
+  ) {
     this.tutorForm = this.fb.group({
-      id: [null],
       nome: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
       telefone: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]]
+      endereco: ['', Validators.required],
+      cpf: ['', Validators.required]
     });
   }
 
@@ -30,45 +33,59 @@ export class TutorListComponent implements OnInit {
     this.facade.loadTutors();
   }
 
+  onNewTutor() {
+    this.isEditing = false;
+    this.editingId = null;
+    this.tutorForm.reset();
+    this.showForm = true;
+  }
+
+  onEdit(tutor: any) {
+    this.isEditing = true;
+    this.editingId = tutor.id;
+    this.tutorForm.patchValue(tutor);
+    this.showForm = true;
+  }
+
   onSubmit() {
     if (this.tutorForm.valid) {
-      const tutor = this.tutorForm.value;
-      if (this.isEditing && tutor.id) {
-        this.facade.updateTutor(tutor);
+      const formValue = this.tutorForm.value;
+      const payload: TutorRequest = {
+        ...formValue,
+        cpf: Number(formValue.cpf.toString().replace(/\D/g, ''))
+      };
+
+      if (this.isEditing && this.editingId) {
+        this.facade.updateTutor(this.editingId, payload);
       } else {
-        this.facade.addTutor(tutor);
+        this.facade.createTutor(payload);
       }
-      this.cancelEdit();
+      this.showForm = false;
+      this.tutorForm.reset();
     }
   }
 
-  onEdit(tutor: Tutor) {
-    this.isEditing = true;
-    this.tutorForm.patchValue(tutor);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  cancelEdit() {
-    this.isEditing = false;
-    this.tutorForm.reset();
-  }
-
-  // Funções de Vínculo
-  abrirVinculo(tutorId: number) {
-    this.tutorSelecionadoParaVinculo = 
-      this.tutorSelecionadoParaVinculo === tutorId ? null : tutorId;
-  }
-
-  vincularPet(tutorId: number) {
-    if (this.petIdParaVincular) {
-      this.facade.vincularPet(tutorId, this.petIdParaVincular);
-      this.petIdParaVincular = null;
+  onDelete(id: number) {
+    if(confirm('Excluir tutor?')) {
+      this.facade.deleteTutor(id);
     }
   }
 
-  removerPet(tutorId: number, petId: number) {
-    if(confirm('Desvincular este pet?')) {
-      this.facade.desvincularPet(tutorId, petId);
+  onUnlinkPet(tutorId: number, petId: number) {
+    if(confirm('Desvincular pet?')) {
+      this.facade.unlinkPet(tutorId, petId);
     }
+  }
+
+  openLinkModal(tutorId: number) {
+    this.selectedTutorId = tutorId;
+    const petIdStr = prompt("Digite o ID do Pet para vincular:");
+    if (petIdStr) {
+      this.facade.linkPet(tutorId, Number(petIdStr));
+    }
+  }
+
+  onCancel() {
+    this.showForm = false;
   }
 }

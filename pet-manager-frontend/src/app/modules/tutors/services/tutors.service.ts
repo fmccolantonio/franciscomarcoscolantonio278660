@@ -1,48 +1,52 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Tutor } from '../models/tutor.model';
+import { Tutor, TutorRequest, TutorResponse } from '../models/tutor.model';
 
 @Injectable({ providedIn: 'root' })
 export class TutorsService {
-  private readonly API = 'https://pet-manager-api.geia.vip/v1/tutores';
+  private readonly API_URL = 'https://pet-manager-api.geia.vip/v1/tutores';
 
   constructor(private http: HttpClient) {}
 
-  list(): Observable<Tutor[]> {
-    return this.http.get<Tutor[]>(this.API);
+  list(page: number = 0, size: number = 10, nome?: string): Observable<TutorResponse> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (nome) params = params.set('nome', nome);
+
+    return this.http.get<TutorResponse>(this.API_URL, { params });
   }
 
-  create(tutor: Tutor): Observable<Tutor> {
-    return this.http.post<Tutor>(this.API, tutor);
+  getById(id: number): Observable<Tutor> {
+    return this.http.get<Tutor>(`${this.API_URL}/${id}`);
   }
 
-  update(tutor: Tutor): Observable<Tutor> {
-    return this.http.put<Tutor>(`${this.API}/${tutor.id}`, tutor);
+  create(tutor: TutorRequest): Observable<Tutor> {
+    return this.http.post<Tutor>(this.API_URL, tutor);
+  }
+
+  update(id: number, tutor: TutorRequest): Observable<Tutor> {
+    return this.http.put<Tutor>(`${this.API_URL}/${id}`, tutor);
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.API}/${id}`);
+    return this.http.delete<void>(`${this.API_URL}/${id}`);
   }
 
-  // --- Métodos de Vinculação (Senior) ---
-
-  // Buscar pets de um tutor
-  getPetsDoTutor(tutorId: number): Observable<any[]> {
-    // A API não tem um endpoint direto "GET /tutores/{id}/pets" documentado no Swagger padrão,
-    // mas geralmente vem junto no GET /tutores/{id} ou filtramos.
-    // Pelo padrão REST do edital, vamos assumir que vem no detalhe ou gerenciamos via estado.
-    // Para simplificar: Vamos buscar o detalhe do tutor que deve trazer a lista.
-    return this.http.get<any>(`${this.API}/${tutorId}`);
-  }
-
-  // Vincular Pet ao Tutor
+  // Métodos de Vínculo
   linkPet(tutorId: number, petId: number): Observable<void> {
-    return this.http.post<void>(`${this.API}/${tutorId}/pets/${petId}`, {});
+    return this.http.post<void>(`${this.API_URL}/${tutorId}/pets/${petId}`, {});
   }
 
-  // Remover Vínculo
   unlinkPet(tutorId: number, petId: number): Observable<void> {
-    return this.http.delete<void>(`${this.API}/${tutorId}/pets/${petId}`);
+    return this.http.delete<void>(`${this.API_URL}/${tutorId}/pets/${petId}`);
+  }
+
+  uploadPhoto(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('foto', file);
+    return this.http.post(`${this.API_URL}/${id}/fotos`, formData);
   }
 }

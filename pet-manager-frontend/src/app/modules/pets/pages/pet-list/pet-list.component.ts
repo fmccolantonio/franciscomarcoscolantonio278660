@@ -1,95 +1,90 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PetsFacade } from '../../state/pets.facade';
-import { Pet } from '../../models/pet.model';
+import { PetRequest } from '../../models/pet.model';
 
 @Component({
   selector: 'app-pet-list',
-  standalone: false,
   templateUrl: './pet-list.component.html',
-  styles: []
+  styleUrls: ['./pet-list.scss'],
+  standalone: false // <--- OBRIGATÓRIO PARA USAR MODULES NO ANGULAR NOVO
 })
 export class PetListComponent implements OnInit {
-  
   petForm: FormGroup;
-  isEditing = false; // Para saber se é cadastro ou edição
+  showForm = false;
+  isEditing = false;
   selectedFile: File | null = null;
-  filtroNome: string = '';
+  editingId: number | null = null;
 
   constructor(
     public facade: PetsFacade,
     private fb: FormBuilder
   ) {
     this.petForm = this.fb.group({
-      id: [null], // Campo oculto para o ID
-      nome: ['', Validators.required],
-      especie: ['', Validators.required],
-      raca: ['', Validators.required],
+      nome: ['', [Validators.required, Validators.maxLength(100)]],
+      raca: ['', [Validators.required, Validators.maxLength(100)]],
       idade: [0, [Validators.required, Validators.min(0)]]
     });
   }
 
   ngOnInit(): void {
-    this.facade.loadPets(); // Carrega a primeira página
+    this.facade.loadPets();
   }
 
-  // Ação de Pesquisar
-  onSearch() {
-    this.facade.loadPets(0, this.filtroNome);
+  onSearch(event: any) {
+    const termo = event.target.value;
+    this.facade.loadPets(0, 10, termo);
   }
 
-  // Ação de Paginação
-  mudarPagina(direcao: number) {
-    const novaPagina = this.facade.currentPage + direcao;
-    if (novaPagina >= 0) {
-      this.facade.loadPets(novaPagina, this.filtroNome);
-    }
-  }
-
-  // Prepara o formulário para Edição
-  onEdit(pet: Pet) {
-    this.isEditing = true;
-    this.petForm.patchValue(pet); // Preenche os campos com os dados do pet
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Sobe a tela
-  }
-
-  // Cancela a edição
-  onCancelEdit() {
+  onNewPet() {
     this.isEditing = false;
+    this.editingId = null;
     this.petForm.reset();
+    this.showForm = true;
     this.selectedFile = null;
   }
 
-  // Captura o arquivo de foto
-  onFileSelected(event: any) {
-    this.selectedFile = event.target.files[0];
+  onEdit(pet: any) {
+    this.isEditing = true;
+    this.editingId = pet.id;
+    this.petForm.patchValue({
+      nome: pet.nome,
+      raca: pet.raca,
+      idade: pet.idade
+    });
+    this.showForm = true;
+    this.selectedFile = null;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Salvar (Criar ou Editar)
+  onDelete(id: number) {
+    if (confirm('Tem certeza que deseja excluir este pet?')) {
+      this.facade.deletePet(id);
+    }
+  }
+
+  onFileSelected(event: any) {
+    if (event.target.files?.length) {
+      this.selectedFile = event.target.files[0];
+    }
+  }
+
   onSubmit() {
     if (this.petForm.valid) {
-      const petDados: Pet = this.petForm.value;
+      const dados: PetRequest = this.petForm.value;
 
-      if (this.isEditing && petDados.id) {
-        // MODO EDIÇÃO
-        this.facade.updatePet(petDados);
-        
-        // Se tiver foto, faz o upload separado
-        if (this.selectedFile) {
-          this.facade.uploadPhoto(petDados.id, this.selectedFile);
-        }
-
+      if (this.isEditing && this.editingId) {
+        this.facade.updatePet(this.editingId, dados);
       } else {
-        // MODO CRIAÇÃO
-        // Nota: No modo criação, a API geralmente retorna o ID. 
-        // O ideal seria criar, pegar o ID e depois enviar a foto.
-        // Por simplificação aqui, criamos primeiro. A foto vai no próximo update.
-        this.facade.addPet(petDados);
+        this.facade.createPet(dados, this.selectedFile || undefined);
       }
-
-      this.onCancelEdit(); // Limpa tudo
-    } else {
-      alert('Verifique os campos obrigatórios.');
+      this.showForm = false;
+      this.petForm.reset();
     }
+  }
+
+  onCancel() {
+    this.showForm = false;
+    this.petForm.reset();
   }
 }

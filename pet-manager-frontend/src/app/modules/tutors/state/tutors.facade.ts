@@ -1,59 +1,95 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, finalize } from 'rxjs';
 import { TutorsService } from '../services/tutors.service';
-import { Tutor } from '../models/tutor.model';
+import { Tutor, TutorRequest } from '../models/tutor.model';
 
 @Injectable({ providedIn: 'root' })
 export class TutorsFacade {
   private tutorsSubject = new BehaviorSubject<Tutor[]>([]);
   public tutors$ = this.tutorsSubject.asObservable();
 
-  constructor(private service: TutorsService) {}
+  private loadingSubject = new BehaviorSubject<boolean>(false);
+  public loading$ = this.loadingSubject.asObservable();
 
-  loadTutors() {
-    this.service.list().subscribe({
-      next: (dados: Tutor[]) => this.tutorsSubject.next(dados),
-      error: (err) => console.error('Erro loadTutors', err)
-    });
+  private totalItemsSubject = new BehaviorSubject<number>(0);
+  public totalItems$ = this.totalItemsSubject.asObservable();
+
+  constructor(private tutorsService: TutorsService) {}
+
+  loadTutors(page: number = 0, size: number = 10, nome?: string) {
+    this.loadingSubject.next(true);
+    this.tutorsService.list(page, size, nome)
+      .pipe(finalize(() => this.loadingSubject.next(false)))
+      .subscribe({
+        next: (response) => {
+          this.tutorsSubject.next(response.content);
+          this.totalItemsSubject.next(response.total);
+        },
+        error: (err) => console.error('Erro ao carregar tutores', err)
+      });
   }
 
-  addTutor(tutor: Tutor) {
-    this.service.create(tutor).subscribe({
+  createTutor(tutor: TutorRequest) {
+    this.loadingSubject.next(true);
+    this.tutorsService.create(tutor).subscribe({
       next: () => this.loadTutors(),
-      error: (err) => console.error('Erro addTutor', err)
+      error: (err) => {
+        console.error(err);
+        this.loadingSubject.next(false);
+      }
     });
   }
 
-  updateTutor(tutor: Tutor) {
-    this.service.update(tutor).subscribe({
+  // CORRIGIDO: Passa ID e Objeto separadamente
+  updateTutor(id: number, tutor: TutorRequest) {
+    this.loadingSubject.next(true);
+    this.tutorsService.update(id, tutor).subscribe({
       next: () => this.loadTutors(),
-      error: (err) => console.error('Erro updateTutor', err)
-    });
-  }
-  
-  removeTutor(id: number) {
-    this.service.delete(id).subscribe({
-      next: () => this.loadTutors(),
-      error: (err) => console.error('Erro removeTutor', err)
+      error: (err) => {
+        console.error(err);
+        this.loadingSubject.next(false);
+      }
     });
   }
 
-  // Ações de Vínculo
-  vincularPet(tutorId: number, petId: number) {
-    this.service.linkPet(tutorId, petId).subscribe({
+  deleteTutor(id: number) {
+    this.loadingSubject.next(true);
+    this.tutorsService.delete(id).subscribe({
+      next: () => this.loadTutors(),
+      error: (err) => {
+        console.error(err);
+        this.loadingSubject.next(false);
+      }
+    });
+  }
+
+  // CORRIGIDO: Método de vínculo seguindo o Swagger (apenas IDs)
+  linkPet(tutorId: number, petId: number) {
+    this.loadingSubject.next(true);
+    this.tutorsService.linkPet(tutorId, petId).subscribe({
       next: () => {
         alert('Pet vinculado com sucesso!');
-        this.loadTutors(); // Recarrega para atualizar a lista
+        this.loadingSubject.next(false);
+        // Opcional: Recarregar detalhes do tutor se necessário
       },
-      error: (err) => alert('Erro ao vincular (verifique se o ID do Pet existe)')
+      error: (err) => {
+        console.error(err);
+        alert('Erro ao vincular pet');
+        this.loadingSubject.next(false);
+      }
     });
   }
 
-  desvincularPet(tutorId: number, petId: number) {
-    this.service.unlinkPet(tutorId, petId).subscribe({
+  unlinkPet(tutorId: number, petId: number) {
+    this.loadingSubject.next(true);
+    this.tutorsService.unlinkPet(tutorId, petId).subscribe({
       next: () => {
-        alert('Pet removido do tutor!');
-        this.loadTutors();
+        alert('Vínculo removido!');
+        this.loadingSubject.next(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.loadingSubject.next(false);
       }
     });
   }
