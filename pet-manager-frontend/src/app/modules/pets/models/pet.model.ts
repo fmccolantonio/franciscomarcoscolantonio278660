@@ -10,19 +10,21 @@ export interface PetFoto {
 export interface Pet {
   id: number;
   nome: string;
+  especie: string; 
   raca: string;
   idade: number;
   foto?: PetFoto;
-  // O endpoint de detalhes pode trazer tutores
+  
   tutores?: any[];
 }
 
-// Resposta paginada da API (GET /v1/pets)
+
 export interface PetResponse extends Page<Pet> {}
 
-// Para cadastro e edição (POST/PUT)
+
 export interface PetRequest {
   nome: string;
+  especie: string; 
   raca: string;
   idade: number;
 }

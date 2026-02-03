@@ -1,57 +1,183 @@
-<div class="p-6 bg-gray-50 min-h-screen">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Gerenciar Tutores</h1>
-    <button (click)="onNewTutor()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
-      + Novo Tutor
-    </button>
+<div class="min-h-screen bg-[#FDFBF7]">
+  
+  <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+    <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+    <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+    <div class="absolute bottom-[-20%] left-[20%] w-[500px] h-[500px] bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
   </div>
 
-  <div *ngIf="facade.loading$ | async" class="text-center text-blue-600 my-4">
-    Carregando...
-  </div>
+  <div class="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-  <div *ngIf="showForm" class="bg-white p-6 rounded shadow mb-6">
-    <h2 class="text-xl font-bold mb-4">{{ isEditing ? 'Editar' : 'Novo' }} Tutor</h2>
-    <form [formGroup]="tutorForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <input formControlName="nome" placeholder="Nome" class="border p-2 rounded">
-      <input formControlName="email" placeholder="Email" class="border p-2 rounded">
-      <input formControlName="telefone" placeholder="Telefone" class="border p-2 rounded">
-      <input formControlName="endereco" placeholder="Endereço" class="border p-2 rounded">
-      <input formControlName="cpf" placeholder="CPF" class="border p-2 rounded">
-      
-      <div class="md:col-span-2 flex justify-end gap-2">
-        <button type="button" (click)="onCancel()" class="text-gray-500">Cancelar</button>
-        <button type="submit" [disabled]="tutorForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
+    <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+      <div class="text-center md:text-left">
+        <h1 class="text-5xl font-black text-slate-800 tracking-tight">Galeria<span class="text-indigo-600">Tutores</span></h1>
+        <p class="text-slate-500 mt-2 font-medium">Gerencie os proprietários e clientes</p>
       </div>
-    </form>
-  </div>
+      
+      <div class="relative w-full md:w-96 group">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input type="text" placeholder="Busque por nome, email..." (input)="onSearch($event)"
+          class="block w-full pl-11 pr-4 py-3.5 bg-white border-2 border-slate-300 rounded-full text-slate-700 shadow-sm focus:outline-none focus:border-indigo-600 focus:ring-0 placeholder-slate-400 font-medium transition-all">
+      </div>
+    </div>
 
-  <div class="grid gap-4">
-    <div *ngFor="let tutor of facade.tutors$ | async" class="bg-white p-4 rounded shadow border-l-4 border-blue-500">
-      <div class="flex justify-between items-start">
-        <div>
-          <h3 class="font-bold text-lg">{{ tutor.nome }}</h3>
-          <p class="text-gray-600 text-sm">{{ tutor.email }} | {{ tutor.telefone }}</p>
+    <div *ngIf="facade.loading$ | async" class="flex justify-center py-20">
+      <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 pb-24">
+      <div *ngFor="let tutor of facade.tutors$ | async" 
+           class="group relative bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden cursor-default aspect-[3/4]">
+        
+        <div class="absolute inset-0 w-full h-full bg-slate-200">
+          <img *ngIf="tutor.foto?.url" [src]="tutor.foto!.url" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+          <div *ngIf="!tutor.foto?.url" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-slate-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-indigo-200 mb-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
+        </div>
+
+        <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-20">
+          <button (click)="onView(tutor)" class="bg-white/90 backdrop-blur text-slate-900 p-2.5 rounded-full hover:bg-white hover:scale-110 transition-all shadow-lg" title="Ver Informações">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+             </svg>
+          </button>
+          <button (click)="onDelete(tutor.id)" class="bg-white/90 backdrop-blur text-red-500 p-2.5 rounded-full hover:bg-white hover:text-red-600 hover:scale-110 transition-all shadow-lg" title="Excluir">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+
+        <div class="absolute top-4 left-4 z-20">
+          <span class="bg-indigo-500/90 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md border border-white/20">
+            {{ tutor.pets?.length ? tutor.pets!.length + ' Pets' : 'Cliente' }}
+          </span>
+        </div>
+
+        <div class="absolute bottom-0 left-0 w-full p-5 z-10 text-white transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
           
-          <div class="mt-3">
-            <h4 class="font-semibold text-xs text-gray-500 uppercase">Pets Vinculados:</h4>
-            <div class="flex flex-wrap gap-2 mt-1">
-              <span *ngFor="let pet of tutor.pets" class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded flex items-center gap-1">
-                🐶 {{ pet.nome }}
-                <button (click)="onUnlinkPet(tutor.id, pet.id)" class="text-red-500 hover:text-red-700 ml-1 font-bold">×</button>
-              </span>
-              <span *ngIf="!tutor.pets?.length" class="text-xs text-gray-400">Nenhum pet vinculado</span>
+          <h3 class="text-2xl font-black leading-none mb-3 truncate drop-shadow-md text-white">{{ tutor.nome }}</h3>
+          
+          <div class="flex flex-col gap-1.5 text-white/90 font-bold text-xs drop-shadow-md">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+              <span>{{ tutor.telefone }}</span>
+            </div>
+            <div class="flex items-center gap-2 truncate">
+              <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <span class="truncate">{{ tutor.endereco }}</span>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="flex justify-center items-center gap-6" *ngIf="(facade.tutors$ | async)?.length">
+      <button [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)" class="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md hover:scale-105 transition-all disabled:opacity-30 disabled:hover:scale-100 text-slate-700">←</button>
+      <span class="text-slate-400 font-medium tracking-widest text-sm">PÁGINA {{ currentPage + 1 }}</span>
+      <button (click)="onPageChange(currentPage + 1)" class="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md hover:scale-105 transition-all text-slate-700">→</button>
+    </div>
+
+  </div>
+
+  <button (click)="onNewTutor()" 
+          class="fixed bottom-10 right-10 z-40 bg-gradient-to-r from-indigo-600 to-blue-600 text-white w-16 h-16 rounded-full shadow-2xl shadow-indigo-500/40 hover:scale-110 hover:shadow-indigo-500/60 transition-all flex items-center justify-center group">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 group-hover:rotate-90 transition-transform duration-300">
+      <path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+    </svg>
+    <span class="absolute right-20 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Adicionar Tutor</span>
+  </button>
+
+  <div *ngIf="showForm" class="fixed inset-0 z-[99] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" (click)="onCancel()"></div>
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
+      <div class="p-8">
         
-        <div class="flex gap-2">
-          <button (click)="openLinkModal(tutor.id)" class="text-sm bg-purple-50 text-purple-600 px-3 py-1 rounded hover:bg-purple-100">
-            🔗 Vincular Pet
-          </button>
-          <button (click)="onEdit(tutor)" class="text-blue-600 hover:underline">Editar</button>
-          <button (click)="onDelete(tutor.id)" class="text-red-600 hover:underline">Excluir</button>
+        <div class="flex justify-between items-center mb-8">
+          <div>
+            <h3 class="text-2xl font-black text-slate-800">
+              {{ isReadOnly ? 'Detalhes do Tutor' : (isEditing ? 'Editar Tutor' : 'Novo Cliente') }}
+            </h3>
+            <p class="text-slate-500 text-sm">
+              {{ isReadOnly ? 'Dados de contato e pessoais.' : 'Preencha os dados abaixo.' }}
+            </p>
+          </div>
+          <button (click)="onCancel()" class="bg-slate-100 p-2 rounded-full hover:bg-slate-200 transition-colors">✕</button>
         </div>
+        
+        <form [formGroup]="tutorForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          
+          <div class="relative group">
+            <input type="text" id="nome" formControlName="nome" placeholder=" " 
+                   class="block w-full px-4 py-3.5 text-base text-slate-900 bg-transparent border-2 border-slate-300 rounded-xl appearance-none focus:outline-none focus:ring-0 focus:border-indigo-600 peer transition-all font-bold disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200" />
+            <label for="nome" 
+                   class="absolute text-sm text-slate-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-indigo-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-3 font-bold uppercase tracking-wide peer-disabled:text-slate-400">
+              Nome Completo
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-5">
+            <div class="relative group">
+              <input type="number" id="cpf" formControlName="cpf" placeholder=" " 
+                     class="block w-full px-4 py-3.5 text-base text-slate-900 bg-transparent border-2 border-slate-300 rounded-xl appearance-none focus:outline-none focus:ring-0 focus:border-indigo-600 peer transition-all font-bold disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200" />
+              <label for="cpf" class="absolute text-xs font-bold text-slate-500 bg-white px-2 left-3 -top-2 peer-focus:text-indigo-600 peer-disabled:text-slate-400">CPF</label>
+            </div>
+
+            <div class="relative group">
+              <input type="text" id="telefone" formControlName="telefone" placeholder=" " 
+                     class="block w-full px-4 py-3.5 text-base text-slate-900 bg-transparent border-2 border-slate-300 rounded-xl appearance-none focus:outline-none focus:ring-0 focus:border-indigo-600 peer transition-all font-bold disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200" />
+              <label for="telefone" class="absolute text-xs font-bold text-slate-500 bg-white px-2 left-3 -top-2 peer-focus:text-indigo-600 peer-disabled:text-slate-400">Telefone</label>
+            </div>
+          </div>
+
+          <div class="relative group">
+            <input type="email" id="email" formControlName="email" placeholder=" " 
+                   class="block w-full px-4 py-3.5 text-base text-slate-900 bg-transparent border-2 border-slate-300 rounded-xl appearance-none focus:outline-none focus:ring-0 focus:border-indigo-600 peer transition-all font-bold disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200" />
+            <label for="email" class="absolute text-xs font-bold text-slate-500 bg-white px-2 left-3 -top-2 peer-focus:text-indigo-600 peer-disabled:text-slate-400">Email</label>
+          </div>
+
+          <div class="relative group">
+            <input type="text" id="endereco" formControlName="endereco" placeholder=" " 
+                   class="block w-full px-4 py-3.5 text-base text-slate-900 bg-transparent border-2 border-slate-300 rounded-xl appearance-none focus:outline-none focus:ring-0 focus:border-indigo-600 peer transition-all font-bold disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200" />
+            <label for="endereco" class="absolute text-xs font-bold text-slate-500 bg-white px-2 left-3 -top-2 peer-focus:text-indigo-600 peer-disabled:text-slate-400">Endereço</label>
+          </div>
+
+          <div class="pt-2" *ngIf="!isReadOnly">
+            <label class="block w-full cursor-pointer group">
+              <div class="flex items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-2xl group-hover:border-indigo-500 group-hover:bg-indigo-50/50 transition-all">
+                <div class="text-center">
+                  <p class="text-sm font-bold text-slate-500 group-hover:text-indigo-600">
+                    {{ selectedFile ? 'Foto selecionada!' : 'Clique para enviar foto' }}
+                  </p>
+                  <p class="text-xs text-slate-400 mt-1" *ngIf="!selectedFile">JPG, PNG</p>
+                </div>
+              </div>
+              <input type="file" class="hidden" (change)="onFileSelected($event)" accept="image/*">
+            </label>
+          </div>
+
+          <div class="pt-6 grid grid-cols-2 gap-4">
+             <ng-container *ngIf="isReadOnly; else editButtons">
+               <button type="button" (click)="onCancel()" class="py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Fechar</button>
+               <button type="button" (click)="enableEditing()" class="py-3.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg hover:shadow-xl transition-all">
+                 Editar Dados
+               </button>
+            </ng-container>
+
+            <ng-template #editButtons>
+              <button type="button" (click)="onCancel()" class="py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Cancelar</button>
+              <button type="submit" [disabled]="tutorForm.invalid" class="py-3.5 rounded-xl font-bold text-white bg-black hover:bg-slate-800 shadow-lg hover:shadow-xl transition-all disabled:opacity-50">
+                Salvar Tutor
+              </button>
+            </ng-template>
+          </div>
+        </form>
       </div>
     </div>
   </div>

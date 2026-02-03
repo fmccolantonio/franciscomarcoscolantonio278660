@@ -1,27 +1,24 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { LoginComponent } from './modules/auth/pages/login/login.component';
+import { PetListComponent } from './modules/pets/pages/pet-list/pet-list.component';
+import { TutorListComponent } from './modules/tutors/pages/tutor-list/tutor-list.component'; // Importe o componente
 
 export const routes: Routes = [
-  // Rota padrão: Se o endereço estiver vazio, redireciona para login
   { path: '', redirectTo: 'login', pathMatch: 'full' },
-
-  // Lazy Loading do Módulo de Auth (Login)
-  {
-    path: 'login',
-    loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule)
+  { path: 'login', component: LoginComponent },
+  
+  { 
+    path: 'pets', 
+    component: PetListComponent, 
+    canActivate: [authGuard] 
   },
 
-  // Lazy Loading do Módulo de Pets (Protegido pelo Guard)
-  {
-    path: 'pets',
-    loadChildren: () => import('./modules/pets/pets.module').then(m => m.PetsModule),
-    canActivate: [authGuard]
+  { 
+    path: 'tutors', 
+    component: TutorListComponent, 
+    canActivate: [authGuard] 
   },
 
-  // Lazy Loading do Módulo de Tutores (Protegido pelo Guard)
-  {
-    path: 'tutores',
-    loadChildren: () => import('./modules/tutors/tutors.module').then(m => m.TutorsModule),
-    canActivate: [authGuard]
-  }
+  { path: '**', redirectTo: 'login' }
 ];

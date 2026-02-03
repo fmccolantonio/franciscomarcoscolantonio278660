@@ -35,7 +35,6 @@ export class TutorsService {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
   }
 
-  // Métodos de Vínculo
   linkPet(tutorId: number, petId: number): Observable<void> {
     return this.http.post<void>(`${this.API_URL}/${tutorId}/pets/${petId}`, {});
   }

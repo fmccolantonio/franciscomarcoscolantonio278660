@@ -1,12 +1,15 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from '../auth/auth.service'; // Ajuste o import se seu service estiver em outro lugar
+import { AuthService } from '../auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
 
-  // Se tiver token, clona a requisição e adiciona o cabeçalho
+  if (req.url.includes('/login') || req.url.includes('/autenticacao')) {
+    return next(req);
+  }
+
   if (token) {
     const cloned = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
@@ -14,6 +17,5 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(cloned);
   }
 
-  // Se não tiver token (ex: tela de login), manda normal
   return next(req);
 };

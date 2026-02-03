@@ -1,27 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TutorsFacade } from '../../state/tutors.facade';
+import { TutorsService } from '../../services/tutors.service';
 import { TutorRequest } from '../../models/tutor.model';
 
 @Component({
   selector: 'app-tutor-list',
   templateUrl: './tutor-list.component.html',
-  styleUrls: ['./tutor-list.scss'],
-  standalone: false // <--- SOLUÇÃO DO PROBLEMA
+  styleUrls: ['./tutor-list.component.scss'],
+  standalone: false
 })
 export class TutorListComponent implements OnInit {
   tutorForm: FormGroup;
   showForm = false;
   isEditing = false;
-  editingId: number | null = null;
-  selectedTutorId: number | null = null;
+  isReadOnly = false; // Flag de leitura
+  selectedFile: File | null = null;
+  currentTutorId: number | null = null;
+  currentPage = 0; 
 
   constructor(
     public facade: TutorsFacade,
+    private tutorsService: TutorsService,
     private fb: FormBuilder
   ) {
     this.tutorForm = this.fb.group({
-      nome: ['', Validators.required],
+      nome: ['', [Validators.required, Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email]],
       telefone: ['', Validators.required],
       endereco: ['', Validators.required],
@@ -30,62 +34,115 @@ export class TutorListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.facade.loadTutors();
+    this.loadData();
   }
+
+  loadData() {
+    this.facade.loadTutors(this.currentPage, 10);
+  }
+
+  onPageChange(page: number) {
+    this.currentPage = page;
+    this.loadData();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  onSearch(event: any) {
+    const termo = event.target.value;
+    this.currentPage = 0; 
+    this.facade.loadTutors(0, 10, termo);
+  }
+
+  // --- Ações ---
 
   onNewTutor() {
     this.isEditing = false;
-    this.editingId = null;
+    this.isReadOnly = false;
+    this.currentTutorId = null;
+    this.tutorForm.enable();
     this.tutorForm.reset();
     this.showForm = true;
+    this.selectedFile = null;
   }
 
-  onEdit(tutor: any) {
+  // Visualizar Detalhes
+  onView(tutor: any) {
     this.isEditing = true;
-    this.editingId = tutor.id;
-    this.tutorForm.patchValue(tutor);
+    this.isReadOnly = true;
+    this.currentTutorId = tutor.id;
+    
+    this.tutorForm.patchValue({
+      nome: tutor.nome,
+      email: tutor.email,
+      telefone: tutor.telefone,
+      endereco: tutor.endereco,
+      cpf: tutor.cpf
+    });
+    
+    this.tutorForm.disable(); // Trava formulário
     this.showForm = true;
+    this.selectedFile = null;
   }
 
-  onSubmit() {
-    if (this.tutorForm.valid) {
-      const formValue = this.tutorForm.value;
-      const payload: TutorRequest = {
-        ...formValue,
-        cpf: Number(formValue.cpf.toString().replace(/\D/g, ''))
-      };
-
-      if (this.isEditing && this.editingId) {
-        this.facade.updateTutor(this.editingId, payload);
-      } else {
-        this.facade.createTutor(payload);
-      }
-      this.showForm = false;
-      this.tutorForm.reset();
-    }
+  enableEditing() {
+    this.isReadOnly = false;
+    this.tutorForm.enable();
   }
 
   onDelete(id: number) {
-    if(confirm('Excluir tutor?')) {
+    if (confirm('Tem certeza que deseja excluir este tutor?')) {
       this.facade.deleteTutor(id);
     }
   }
 
-  onUnlinkPet(tutorId: number, petId: number) {
-    if(confirm('Desvincular pet?')) {
-      this.facade.unlinkPet(tutorId, petId);
+  onFileSelected(event: any) {
+    if (event.target.files?.length) {
+      this.selectedFile = event.target.files[0];
     }
   }
 
-  openLinkModal(tutorId: number) {
-    this.selectedTutorId = tutorId;
-    const petIdStr = prompt("Digite o ID do Pet para vincular:");
-    if (petIdStr) {
-      this.facade.linkPet(tutorId, Number(petIdStr));
+  onSubmit() {
+    if (this.tutorForm.valid) {
+      const dados: TutorRequest = this.tutorForm.value;
+
+      if (this.isEditing && this.currentTutorId) {
+        this.facade.updateTutor(this.currentTutorId, dados);
+        
+        if (this.selectedFile) {
+          this.tutorsService.uploadPhoto(this.currentTutorId, this.selectedFile).subscribe({
+            next: () => this.loadData()
+          });
+        }
+        this.closeForm();
+      } else {
+        this.tutorsService.create(dados).subscribe({
+          next: (novoTutor) => {
+            if (this.selectedFile && novoTutor.id) {
+              this.tutorsService.uploadPhoto(novoTutor.id, this.selectedFile).subscribe({
+                next: () => { this.loadData(); this.closeForm(); },
+                error: () => { this.loadData(); this.closeForm(); }
+              });
+            } else {
+              this.loadData();
+              this.closeForm();
+            }
+          },
+          error: (err) => console.error('Erro ao criar tutor', err)
+        });
+      }
     }
   }
 
   onCancel() {
+    this.closeForm();
+  }
+
+  private closeForm() {
     this.showForm = false;
+    this.tutorForm.reset();
+    this.selectedFile = null;
+    this.currentTutorId = null;
+    this.isReadOnly = false;
+    this.tutorForm.enable();
   }
 }

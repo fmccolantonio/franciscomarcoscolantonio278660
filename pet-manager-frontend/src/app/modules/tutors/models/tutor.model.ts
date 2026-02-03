@@ -7,14 +7,14 @@ export interface Tutor {
   email: string;
   telefone: string;
   endereco: string;
-  cpf: number; // O schema define como int64. No front, converteremos.
+  cpf: number;
   foto?: {
     id: number;
     nome: string;
     contentType: string;
     url: string;
   };
-  pets?: Pet[]; // Lista de pets vinculados
+  pets?: Pet[];
 }
 
 export interface TutorResponse extends Page<Tutor> {}
