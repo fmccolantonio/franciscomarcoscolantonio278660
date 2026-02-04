@@ -15,16 +15,16 @@ export interface Pet {
   idade: number;
   foto?: PetFoto;
   
+  tutorId?: number; 
   tutores?: any[];
 }
 
-
 export interface PetResponse extends Page<Pet> {}
-
 
 export interface PetRequest {
   nome: string;
   especie: string; 
   raca: string;
   idade: number;
+  tutorId?: number; 
 }

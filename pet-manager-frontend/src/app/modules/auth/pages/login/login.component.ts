@@ -8,7 +8,7 @@ import { finalize } from 'rxjs';
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
-  standalone: false // <--- AQUI ESTÁ A SOLUÇÃO: Forçamos ser falso
+  standalone: false
 })
 export class LoginComponent {
   loginForm: FormGroup;

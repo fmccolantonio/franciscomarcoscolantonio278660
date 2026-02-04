@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TutorsFacade } from '../../state/tutors.facade';
 import { TutorsService } from '../../services/tutors.service';
 import { TutorRequest } from '../../models/tutor.model';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-tutor-list',
@@ -14,27 +15,57 @@ export class TutorListComponent implements OnInit {
   tutorForm: FormGroup;
   showForm = false;
   isEditing = false;
-  isReadOnly = false; // Flag de leitura
+  isReadOnly = false;
   selectedFile: File | null = null;
   currentTutorId: number | null = null;
   currentPage = 0; 
+  
+  selectedTutor: any = null; 
+  petIdToLink: string = '';
+
+  feedbackMessage: string = '';
+  feedbackType: 'success' | 'error' | 'warning' = 'success';
+
+  showConfirmModal = false;
+  petIdToUnlink: number | null = null;
 
   constructor(
     public facade: TutorsFacade,
     private tutorsService: TutorsService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.tutorForm = this.fb.group({
       nome: ['', [Validators.required, Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email]],
       telefone: ['', Validators.required],
       endereco: ['', Validators.required],
-      cpf: ['', Validators.required]
+      cpf: ['', Validators.required],
+      petId: [''] 
     });
   }
 
   ngOnInit(): void {
     this.loadData();
+
+    this.route.queryParams.subscribe(params => {
+      const openTutorId = params['openTutorId'];
+      if (openTutorId) {
+      
+        this.tutorsService.getById(+openTutorId).subscribe({
+          next: (tutor) => {
+            this.onView(tutor);
+            // Limpa a URL
+            this.router.navigate([], {
+              queryParams: { openTutorId: null },
+              queryParamsHandling: 'merge'
+            });
+          },
+          error: () => console.error('Tutor do link não encontrado')
+        });
+      }
+    });
   }
 
   loadData() {
@@ -53,35 +84,120 @@ export class TutorListComponent implements OnInit {
     this.facade.loadTutors(0, 10, termo);
   }
 
-  // --- Ações ---
+  showFeedback(message: string, type: 'success' | 'error' | 'warning') {
+    this.feedbackMessage = message;
+    this.feedbackType = type;
+    setTimeout(() => {
+      this.feedbackMessage = '';
+    }, 4000);
+  }
+
+  linkPet() {
+    if (!this.petIdToLink || !this.currentTutorId) return;
+    
+    const petId = Number(this.petIdToLink);
+    const tutorId = this.currentTutorId;
+
+    if (this.selectedTutor?.pets && this.selectedTutor.pets.some((p: any) => p.id === petId)) {
+      this.showFeedback('Este Pet já está vinculado a este Tutor!', 'warning');
+      return;
+    }
+
+    this.tutorsService.linkPet(tutorId, petId).subscribe({
+      next: () => {
+        this.showFeedback('Pet vinculado com sucesso! 🐾', 'success');
+        this.petIdToLink = '';
+        this.refreshSelectedTutor(tutorId);
+      },
+      error: (err) => {
+        console.error(err);
+        if (err.status === 404) {
+          this.showFeedback('Pet não encontrado. Verifique o ID.', 'error');
+        } else {
+          this.showFeedback('Erro ao vincular. Tente novamente.', 'error');
+        }
+      }
+    });
+  }
+
+  onUnlinkPet(petId: number) {
+    this.petIdToUnlink = petId;
+    this.showConfirmModal = true;
+  }
+
+  confirmUnlink() {
+    if (!this.currentTutorId || !this.petIdToUnlink) return;
+
+    this.tutorsService.unlinkPet(this.currentTutorId, this.petIdToUnlink).subscribe({
+      next: () => {
+        this.showFeedback('Vínculo removido.', 'success');
+        this.refreshSelectedTutor(this.currentTutorId!);
+        this.closeConfirmModal();
+      },
+      error: (err) => {
+        console.error(err);
+        this.showFeedback('Erro ao desvincular.', 'error');
+        this.closeConfirmModal();
+      }
+    });
+  }
+
+  closeConfirmModal() {
+    this.showConfirmModal = false;
+    this.petIdToUnlink = null;
+  }
+
+  private refreshSelectedTutor(tutorId: number) {
+    this.tutorsService.getById(tutorId).subscribe(tutor => {
+      this.selectedTutor = tutor;
+      this.facade.loadTutors(this.currentPage, 10);
+    });
+  }
+
+  goToPet(petId: number) {
+    this.onCancel(); 
+    this.router.navigate(['/pets'], { queryParams: { openPetId: petId } });
+  }
 
   onNewTutor() {
+    this.selectedTutor = null;
     this.isEditing = false;
     this.isReadOnly = false;
     this.currentTutorId = null;
+    this.petIdToLink = '';
+    this.feedbackMessage = '';
     this.tutorForm.enable();
     this.tutorForm.reset();
     this.showForm = true;
     this.selectedFile = null;
   }
 
-  // Visualizar Detalhes
   onView(tutor: any) {
     this.isEditing = true;
     this.isReadOnly = true;
     this.currentTutorId = tutor.id;
+    this.petIdToLink = ''; 
+    this.feedbackMessage = '';
     
     this.tutorForm.patchValue({
       nome: tutor.nome,
       email: tutor.email,
       telefone: tutor.telefone,
       endereco: tutor.endereco,
-      cpf: tutor.cpf
+      cpf: tutor.cpf,
+      petId: '' 
     });
     
-    this.tutorForm.disable(); // Trava formulário
+    this.tutorForm.disable();
     this.showForm = true;
     this.selectedFile = null;
+
+    this.tutorsService.getById(tutor.id).subscribe({
+      next: (fullTutor) => {
+        this.selectedTutor = fullTutor;
+      },
+      error: (err) => console.error('Erro ao carregar detalhes', err)
+    });
   }
 
   enableEditing() {
@@ -102,34 +218,57 @@ export class TutorListComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.tutorForm.valid) {
-      const dados: TutorRequest = this.tutorForm.value;
+    if (this.tutorForm.invalid) {
+      this.tutorForm.markAllAsTouched();
+      this.showFeedback('Preencha os campos obrigatórios.', 'warning');
+      return;
+    }
 
-      if (this.isEditing && this.currentTutorId) {
-        this.facade.updateTutor(this.currentTutorId, dados);
-        
-        if (this.selectedFile) {
-          this.tutorsService.uploadPhoto(this.currentTutorId, this.selectedFile).subscribe({
-            next: () => this.loadData()
-          });
-        }
-        this.closeForm();
-      } else {
-        this.tutorsService.create(dados).subscribe({
-          next: (novoTutor) => {
-            if (this.selectedFile && novoTutor.id) {
-              this.tutorsService.uploadPhoto(novoTutor.id, this.selectedFile).subscribe({
-                next: () => { this.loadData(); this.closeForm(); },
-                error: () => { this.loadData(); this.closeForm(); }
-              });
-            } else {
-              this.loadData();
-              this.closeForm();
-            }
-          },
-          error: (err) => console.error('Erro ao criar tutor', err)
-        });
+    const formValues = this.tutorForm.value;
+    
+    const tutorData: TutorRequest = {
+      nome: formValues.nome,
+      email: formValues.email,
+      telefone: formValues.telefone,
+      endereco: formValues.endereco,
+      cpf: formValues.cpf
+    };
+
+    const petIdToLink = formValues.petId ? Number(formValues.petId) : null;
+
+    if (this.isEditing && this.currentTutorId) {
+      this.facade.updateTutor(this.currentTutorId, tutorData);
+      
+      if (this.selectedFile) {
+        this.tutorsService.uploadPhoto(this.currentTutorId, this.selectedFile).subscribe();
       }
+      
+      if (petIdToLink) {
+        this.tutorsService.linkPet(this.currentTutorId, petIdToLink).subscribe();
+      }
+      
+      this.showFeedback('Tutor atualizado!', 'success');
+      setTimeout(() => { this.loadData(); this.closeForm(); }, 1000);
+
+    } else {
+      this.tutorsService.create(tutorData).subscribe({
+        next: (novoTutor) => {
+          if (this.selectedFile && novoTutor.id) {
+            this.tutorsService.uploadPhoto(novoTutor.id, this.selectedFile).subscribe();
+          }
+
+          if (petIdToLink && novoTutor.id) {
+            this.tutorsService.linkPet(novoTutor.id, petIdToLink).subscribe();
+          }
+          
+          this.showFeedback('Tutor criado com sucesso!', 'success');
+          setTimeout(() => { this.loadData(); this.closeForm(); }, 1000);
+        },
+        error: (err) => {
+          console.error(err);
+          this.showFeedback('Erro ao criar tutor.', 'error');
+        }
+      });
     }
   }
 
@@ -144,5 +283,7 @@ export class TutorListComponent implements OnInit {
     this.currentTutorId = null;
     this.isReadOnly = false;
     this.tutorForm.enable();
+    this.selectedTutor = null;
+    this.feedbackMessage = '';
   }
 }

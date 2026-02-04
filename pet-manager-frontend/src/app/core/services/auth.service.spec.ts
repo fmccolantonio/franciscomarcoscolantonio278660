@@ -20,11 +20,11 @@ describe('AuthService', () => {
 
   it('deve retornar falso se não houver token', () => {
     localStorage.clear();
-    expect(service.isLoggedIn()).toBeFalse();
+    expect(service.isLoggedIn()).toBe(false);
   });
 
   it('deve retornar verdadeiro se houver token', () => {
     localStorage.setItem('token', 'teste');
-    expect(service.isLoggedIn()).toBeTrue();
+    expect(service.isLoggedIn()).toBe(true);
   });
 });

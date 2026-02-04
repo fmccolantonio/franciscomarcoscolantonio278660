@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { Router, RouterModule } from '@angular/router'; // <--- Importação necessária
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule], // <--- OBRIGATÓRIO: Sem isso, o routerLink não funciona!
+  imports: [CommonModule, RouterModule],
   template: `
     <aside class="w-20 lg:w-72 h-screen sticky top-0 flex flex-col bg-white border-r border-slate-100 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50 transition-all duration-300"
            *ngIf="authService.isLogged()">

@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
-  // CORREÇÃO: Removido o '/v1'. O endereço deve ser direto na raiz.
+
   private readonly API_URL = 'https://pet-manager-api.geia.vip/autenticacao/login';
   
   private readonly TOKEN_KEY = 'auth_token';
@@ -17,7 +17,6 @@ export class AuthService {
   login(credentials: { username: string; password: string }): Observable<any> {
     return this.http.post<any>(this.API_URL, credentials).pipe(
       tap(response => {
-        // O Swagger mostra que o retorno tem "access_token"
         const token = response.access_token || response.token;
         
         if (token) {

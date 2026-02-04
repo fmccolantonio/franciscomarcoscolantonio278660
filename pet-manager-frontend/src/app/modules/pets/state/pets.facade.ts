@@ -1,82 +1,67 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, finalize } from 'rxjs';
 import { PetsService } from '../services/pets.service';
-import { Pet } from '../models/pet.model';
+import { Pet, PetRequest } from '../models/pet.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PetsFacade {
-  private petsSubject = new BehaviorSubject<Pet[]>([]);
-  pets$ = this.petsSubject.asObservable();
+  private _pets = new BehaviorSubject<Pet[]>([]);
+  pets$ = this._pets.asObservable();
 
-  private loadingSubject = new BehaviorSubject<boolean>(false);
-  loading$ = this.loadingSubject.asObservable();
+  private _loading = new BehaviorSubject<boolean>(false);
+  loading$ = this._loading.asObservable();
 
   constructor(private petsService: PetsService) {}
 
   loadPets(page: number = 0, size: number = 10, nome?: string) {
-    this.loadingSubject.next(true);
+    this._loading.next(true);
+    
     this.petsService.list(page, size, nome)
-      .pipe(finalize(() => this.loadingSubject.next(false)))
+      .pipe(finalize(() => this._loading.next(false)))
       .subscribe({
         next: (response) => {
-          this.petsSubject.next(response.content || []);
+      
+          const lista = (response as any).content || response; 
+          this._pets.next(lista);
         },
-        error: (err: any) => console.error('Erro ao carregar pets:', err)
-      });
-  }
-
-  createPet(pet: any, foto?: File) {
-    this.loadingSubject.next(true);
-    this.petsService.create(pet)
-      .subscribe({
-        next: (novoPet) => {
-          if (foto && novoPet.id) {
-            this.uploadFoto(novoPet.id, foto);
-          } else {
-            this.loadPets();
-            this.loadingSubject.next(false);
-          }
-        },
-        error: (err: any) => {
-          console.error('Erro ao criar pet:', err);
-          this.loadingSubject.next(false);
+        error: (err) => {
+          console.error('Erro ao carregar pets:', err);
+          this._pets.next([]);
         }
       });
   }
 
-  updatePet(id: number, pet: any) {
-    this.loadingSubject.next(true);
-    this.petsService.update(id, pet)
-      .pipe(finalize(() => this.loadingSubject.next(false)))
-      .subscribe({
-        next: () => this.loadPets(),
-        error: (err: any) => console.error('Erro ao atualizar pet:', err)
-      });
+  createPet(pet: PetRequest) {
+    this._loading.next(true);
+    return this.petsService.create(pet).pipe(
+      finalize(() => {
+        this._loading.next(false);
+        this.loadPets();
+      })
+    );
+  }
+
+  updatePet(id: number, pet: PetRequest) {
+    this._loading.next(true);
+    this.petsService.update(id, pet).subscribe({
+      next: () => {
+        this.loadPets();
+      },
+      error: (err) => console.error('Erro ao atualizar', err),
+      complete: () => this._loading.next(false)
+    });
   }
 
   deletePet(id: number) {
-    this.loadingSubject.next(true);
-    this.petsService.delete(id)
-      .pipe(finalize(() => this.loadingSubject.next(false)))
-      .subscribe({
-        next: () => this.loadPets(),
-        error: (err: any) => console.error('Erro ao deletar pet:', err)
-      });
-  }
-
-  // Corrigido de uploadPhoto para uploadFoto
-  uploadFoto(id: number, file: File) {
-    this.petsService.uploadFoto(id, file)
-      .pipe(finalize(() => this.loadingSubject.next(false)))
-      .subscribe({
-        next: () => this.loadPets(),
-        error: (err: any) => console.error('Erro ao enviar foto:', err)
-      });
-  }
-
-  setFilter(nome: string) {
-    this.loadPets(0, 10, nome);
+    this._loading.next(true);
+    this.petsService.delete(id).subscribe({
+      next: () => {
+        this.loadPets();
+      },
+      error: (err) => console.error('Erro ao deletar', err),
+      complete: () => this._loading.next(false)
+    });
   }
 }

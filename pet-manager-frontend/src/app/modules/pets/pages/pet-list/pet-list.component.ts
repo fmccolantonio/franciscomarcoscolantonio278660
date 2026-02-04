@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PetsFacade } from '../../state/pets.facade';
 import { PetsService } from '../../services/pets.service';
+import { TutorsService } from '../../../tutors/services/tutors.service';
 import { PetRequest } from '../../models/pet.model';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-pet-list',
@@ -18,15 +20,19 @@ export class PetListComponent implements OnInit {
   selectedFile: File | null = null;
   currentPetId: number | null = null;
   currentPage = 0; 
-  copied = false; 
+  copied = false;
+  
+  currentTutors: any[] = [];
 
   constructor(
     public facade: PetsFacade,
     private petsService: PetsService,
-    private fb: FormBuilder
+    private tutorsService: TutorsService,
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.petForm = this.fb.group({
-      id: [{value: '', disabled: true}],
       nome: ['', [Validators.required, Validators.maxLength(100)]],
       especie: ['', Validators.required],
       raca: ['', [Validators.required, Validators.maxLength(100)]],
@@ -36,6 +42,22 @@ export class PetListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+
+    this.route.queryParams.subscribe(params => {
+      const openPetId = params['openPetId'];
+      if (openPetId) {
+        this.petsService.getById(+openPetId).subscribe({
+          next: (pet) => {
+            this.onView(pet); 
+            this.router.navigate([], {
+              queryParams: { openPetId: null },
+              queryParamsHandling: 'merge'
+            });
+          },
+          error: () => console.error('Pet do link não encontrado')
+        });
+      }
+    });
   }
 
   loadData() {
@@ -63,14 +85,27 @@ export class PetListComponent implements OnInit {
     }
   }
 
+  copyId() {
+    if (this.currentPetId) {
+      navigator.clipboard.writeText(this.currentPetId.toString());
+      this.copied = true;
+      setTimeout(() => this.copied = false, 2000);
+    }
+  }
 
+  goToTutor(tutorId: number) {
+    if (tutorId) {
+      this.onCancel();
+      this.router.navigate(['/tutors'], { queryParams: { openTutorId: tutorId } }); 
+    }
+  }
 
   onNewPet() {
     this.isEditing = false;
     this.isReadOnly = false;
     this.currentPetId = null;
+    this.currentTutors = [];
     this.petForm.enable();
-    this.petForm.controls['id'].disable();
     this.petForm.reset({ idade: 0, especie: '' });
     this.showForm = true;
     this.selectedFile = null;
@@ -80,9 +115,9 @@ export class PetListComponent implements OnInit {
     this.isEditing = true;
     this.isReadOnly = true;
     this.currentPetId = pet.id;
+    this.currentTutors = [];
     
     this.petForm.patchValue({
-      id: pet.id, 
       nome: pet.nome,
       especie: pet.especie,
       raca: pet.raca,
@@ -92,20 +127,19 @@ export class PetListComponent implements OnInit {
     this.petForm.disable(); 
     this.showForm = true;
     this.selectedFile = null;
+
+    this.petsService.getById(pet.id).subscribe(fullPet => {
+      const p: any = fullPet;
+      
+      if (p.tutores && Array.isArray(p.tutores)) {
+        this.currentTutors = p.tutores;
+      }
+    });
   }
 
   enableEditing() {
     this.isReadOnly = false;
     this.petForm.enable();
-    this.petForm.controls['id'].disable(); 
-  }
-
-  copyId() {
-    if (this.currentPetId) {
-      navigator.clipboard.writeText(this.currentPetId.toString());
-      this.copied = true;
-      setTimeout(() => this.copied = false, 2000); 
-    }
   }
 
   onDelete(id: number) {
@@ -121,16 +155,9 @@ export class PetListComponent implements OnInit {
   }
 
   onSubmit() {
-  
     if (this.petForm.valid) {
-      const formValue = this.petForm.getRawValue();
-      const dados: PetRequest = {
-        nome: formValue.nome,
-        especie: formValue.especie,
-        raca: formValue.raca,
-        idade: formValue.idade
-      };
-
+      const dados: PetRequest = this.petForm.value;
+      
       if (this.isEditing && this.currentPetId) {
         this.facade.updatePet(this.currentPetId, dados);
         if (this.selectedFile) {
@@ -167,6 +194,7 @@ export class PetListComponent implements OnInit {
     this.petForm.reset();
     this.selectedFile = null;
     this.currentPetId = null;
+    this.currentTutors = [];
     this.isReadOnly = false;
     this.petForm.enable();
   }
