@@ -6,7 +6,7 @@ import { Observable, throwError } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  // ALTERAÇÃO AQUI: Usando o endereço completo para garantir que funcione no Codespaces
+  
   private readonly API = 'https://pet-manager-api.geia.vip/autenticacao';
 
   constructor(private http: HttpClient, private router: Router) {}

@@ -1,26 +1,24 @@
-/* Importando a fonte Inter */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Configurações do Tailwind (Isso é obrigatório para o design funcionar) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Estilos Globais */
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f8fafc; /* Cor de fundo cinza suave */
-  color: #0f172a; /* Cor do texto principal */
+  background-color: #f8fafc;
+  color: #0f172a;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar Bonita */
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
   border-radius: 20px;

@@ -12,6 +12,11 @@ describe('AuthService', () => {
       providers: [AuthService]
     });
     service = TestBed.inject(AuthService);
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
   });
 
   it('deve ser criado', () => {
@@ -19,12 +24,12 @@ describe('AuthService', () => {
   });
 
   it('deve retornar falso se não houver token', () => {
-    localStorage.clear();
+    localStorage.removeItem('access_token');
     expect(service.isLoggedIn()).toBe(false);
   });
 
   it('deve retornar verdadeiro se houver token', () => {
-    localStorage.setItem('token', 'teste');
+    localStorage.setItem('access_token', 'token-teste');
     expect(service.isLoggedIn()).toBe(true);
   });
 });

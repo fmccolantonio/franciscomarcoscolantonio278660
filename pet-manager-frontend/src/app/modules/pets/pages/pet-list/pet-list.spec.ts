@@ -1,10 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { of } from 'rxjs';
+
 import { PetListComponent } from './pet-list.component';
+import { PetsModule } from '../../pets.module';
 import { PetsFacade } from '../../state/pets.facade';
 import { PetsService } from '../../services/pets.service';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { of } from 'rxjs';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 class MockPetsFacade {
   pets$ = of([]);
@@ -22,13 +24,12 @@ describe('PetListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PetListComponent ], 
-      imports: [ 
-        ReactiveFormsModule,
-        HttpClientTestingModule 
+      imports: [
+        HttpClientTestingModule,
+        RouterTestingModule,
+        PetsModule
       ],
       providers: [
-        FormBuilder,
         { provide: PetsFacade, useClass: MockPetsFacade },
         { provide: PetsService, useClass: MockPetsService }
       ]

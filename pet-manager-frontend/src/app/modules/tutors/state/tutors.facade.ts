@@ -40,7 +40,7 @@ export class TutorsFacade {
     });
   }
 
-  // CORRIGIDO: Passa ID e Objeto separadamente
+  
   updateTutor(id: number, tutor: TutorRequest) {
     this.loadingSubject.next(true);
     this.tutorsService.update(id, tutor).subscribe({
@@ -63,14 +63,14 @@ export class TutorsFacade {
     });
   }
 
-  // CORRIGIDO: Método de vínculo seguindo o Swagger (apenas IDs)
+  
   linkPet(tutorId: number, petId: number) {
     this.loadingSubject.next(true);
     this.tutorsService.linkPet(tutorId, petId).subscribe({
       next: () => {
         alert('Pet vinculado com sucesso!');
         this.loadingSubject.next(false);
-        // Opcional: Recarregar detalhes do tutor se necessário
+        
       },
       error: (err) => {
         console.error(err);
