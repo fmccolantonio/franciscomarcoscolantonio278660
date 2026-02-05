@@ -1,6 +1,6 @@
 <div class="flex min-h-screen bg-[#FDFBF7]">
   
-  <app-navbar></app-navbar>
+  <app-navbar *ngIf="showSidebar"></app-navbar>
 
   <main class="flex-1 w-full overflow-hidden">
     <router-outlet></router-outlet>
