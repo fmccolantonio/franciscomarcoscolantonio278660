@@ -94,7 +94,7 @@
 
   <div *ngIf="showForm" class="fixed inset-0 z-[99] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" (click)="onCancel()"></div>
-    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up max-h-[90vh] overflow-y-auto">
       <div class="p-8">
         
         <div *ngIf="feedbackMessage" 
@@ -147,14 +147,14 @@
 
           <div class="grid grid-cols-2 gap-5">
             <div class="relative group">
-              <input type="number" id="cpf" formControlName="cpf" placeholder=" " 
+              <input type="text" id="cpf" formControlName="cpf" placeholder=" " maxlength="14" (input)="formatCpf($event)"
                      class="block w-full px-4 py-3.5 text-base text-slate-900 bg-transparent border-2 border-slate-300 rounded-xl appearance-none focus:outline-none focus:ring-0 focus:border-indigo-600 peer transition-all font-bold disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
                      [class.border-red-500]="tutorForm.get('cpf')?.invalid && tutorForm.get('cpf')?.touched"/>
-              <label for="cpf" class="absolute text-xs font-bold text-slate-500 bg-white px-2 left-3 -top-2 peer-focus:text-indigo-600 peer-disabled:text-slate-400">CPF</label>
+              <label for="cpf" class="absolute text-xs font-bold text-slate-500 bg-white px-2 left-3 -top-2 peer-focus:text-indigo-600 peer-disabled:text-slate-400">CPF (000.000.000-00)</label>
             </div>
 
             <div class="relative group">
-              <input type="text" id="telefone" formControlName="telefone" placeholder=" " 
+              <input type="text" id="telefone" formControlName="telefone" placeholder=" " maxlength="15" (input)="formatPhone($event)"
                      class="block w-full px-4 py-3.5 text-base text-slate-900 bg-transparent border-2 border-slate-300 rounded-xl appearance-none focus:outline-none focus:ring-0 focus:border-indigo-600 peer transition-all font-bold disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
                      [class.border-red-500]="tutorForm.get('telefone')?.invalid && tutorForm.get('telefone')?.touched"/>
               <label for="telefone" class="absolute text-xs font-bold text-slate-500 bg-white px-2 left-3 -top-2 peer-focus:text-indigo-600 peer-disabled:text-slate-400">Telefone</label>

@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
 import { TutorsFacade } from '../../state/tutors.facade';
 import { TutorsService } from '../../services/tutors.service';
 import { TutorRequest } from '../../models/tutor.model';
-import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-tutor-list',
@@ -18,9 +18,9 @@ export class TutorListComponent implements OnInit {
   isReadOnly = false;
   selectedFile: File | null = null;
   currentTutorId: number | null = null;
-  currentPage = 0; 
+  currentPage = 0;
   
-  selectedTutor: any = null; 
+  selectedTutor: any = null;
   petIdToLink: string = '';
 
   feedbackMessage: string = '';
@@ -42,7 +42,7 @@ export class TutorListComponent implements OnInit {
       telefone: ['', Validators.required],
       endereco: ['', Validators.required],
       cpf: ['', Validators.required],
-      petId: [''] 
+      petId: ['']
     });
   }
 
@@ -52,17 +52,15 @@ export class TutorListComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const openTutorId = params['openTutorId'];
       if (openTutorId) {
-      
         this.tutorsService.getById(+openTutorId).subscribe({
           next: (tutor) => {
             this.onView(tutor);
-            // Limpa a URL
             this.router.navigate([], {
               queryParams: { openTutorId: null },
               queryParamsHandling: 'merge'
             });
           },
-          error: () => console.error('Tutor do link não encontrado')
+          error: () => console.error('Tutor não encontrado')
         });
       }
     });
@@ -80,7 +78,7 @@ export class TutorListComponent implements OnInit {
 
   onSearch(event: any) {
     const termo = event.target.value;
-    this.currentPage = 0; 
+    this.currentPage = 0;
     this.facade.loadTutors(0, 10, termo);
   }
 
@@ -90,6 +88,55 @@ export class TutorListComponent implements OnInit {
     setTimeout(() => {
       this.feedbackMessage = '';
     }, 4000);
+  }
+
+  formatCpf(event: any) {
+    let value = event.target.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.slice(0, 11);
+
+    if (value.length > 9) {
+      value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+    } else if (value.length > 6) {
+      value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+    } else if (value.length > 3) {
+      value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+    }
+
+    this.tutorForm.get('cpf')?.setValue(value);
+  }
+
+  formatPhone(event: any) {
+    let value = event.target.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.slice(0, 11);
+
+    if (value.length > 10) {
+      value = value.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    } else if (value.length > 6) {
+      value = value.replace(/^(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+    } else if (value.length > 2) {
+      value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+    }
+
+    this.tutorForm.get('telefone')?.setValue(value);
+  }
+
+  private applyCpfMask(cpf: string | number): string {
+    if (!cpf) return '';
+    let value = String(cpf).replace(/\D/g, '');
+    while (value.length < 11) value = '0' + value;
+    return value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  private applyPhoneMask(phone: string): string {
+    if (!phone) return '';
+    let value = phone.replace(/\D/g, '');
+    if (value.length === 11) {
+      return value.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    if (value.length === 10) {
+      return value.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    return phone;
   }
 
   linkPet() {
@@ -105,16 +152,16 @@ export class TutorListComponent implements OnInit {
 
     this.tutorsService.linkPet(tutorId, petId).subscribe({
       next: () => {
-        this.showFeedback('Pet vinculado com sucesso! 🐾', 'success');
+        this.showFeedback('Pet vinculado com sucesso!', 'success');
         this.petIdToLink = '';
         this.refreshSelectedTutor(tutorId);
       },
       error: (err) => {
         console.error(err);
         if (err.status === 404) {
-          this.showFeedback('Pet não encontrado. Verifique o ID.', 'error');
+          this.showFeedback('Pet não encontrado.', 'error');
         } else {
-          this.showFeedback('Erro ao vincular. Tente novamente.', 'error');
+          this.showFeedback('Erro ao vincular.', 'error');
         }
       }
     });
@@ -155,7 +202,7 @@ export class TutorListComponent implements OnInit {
   }
 
   goToPet(petId: number) {
-    this.onCancel(); 
+    this.onCancel();
     this.router.navigate(['/pets'], { queryParams: { openPetId: petId } });
   }
 
@@ -176,16 +223,19 @@ export class TutorListComponent implements OnInit {
     this.isEditing = true;
     this.isReadOnly = true;
     this.currentTutorId = tutor.id;
-    this.petIdToLink = ''; 
+    this.petIdToLink = '';
     this.feedbackMessage = '';
     
+    const maskedCpf = this.applyCpfMask(tutor.cpf);
+    const maskedPhone = this.applyPhoneMask(tutor.telefone);
+
     this.tutorForm.patchValue({
       nome: tutor.nome,
       email: tutor.email,
-      telefone: tutor.telefone,
+      telefone: maskedPhone,
       endereco: tutor.endereco,
-      cpf: tutor.cpf,
-      petId: '' 
+      cpf: maskedCpf,
+      petId: ''
     });
     
     this.tutorForm.disable();
@@ -196,7 +246,7 @@ export class TutorListComponent implements OnInit {
       next: (fullTutor) => {
         this.selectedTutor = fullTutor;
       },
-      error: (err) => console.error('Erro ao carregar detalhes', err)
+      error: (err) => console.error(err)
     });
   }
 
@@ -226,12 +276,15 @@ export class TutorListComponent implements OnInit {
 
     const formValues = this.tutorForm.value;
     
+    const cleanCpf = formValues.cpf ? formValues.cpf.replace(/\D/g, '') : '';
+    const cleanPhone = formValues.telefone ? formValues.telefone.replace(/\D/g, '') : '';
+
     const tutorData: TutorRequest = {
       nome: formValues.nome,
       email: formValues.email,
-      telefone: formValues.telefone,
+      telefone: cleanPhone, 
       endereco: formValues.endereco,
-      cpf: formValues.cpf
+      cpf: Number(cleanCpf)
     };
 
     const petIdToLink = formValues.petId ? Number(formValues.petId) : null;

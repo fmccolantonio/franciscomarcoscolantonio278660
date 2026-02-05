@@ -14,7 +14,7 @@ export interface Tutor {
   email: string;
   telefone: string;
   endereco: string;
-  cpf: string;
+  cpf: number;
   foto?: TutorFoto;
   pets?: Pet[]; 
 }
@@ -26,5 +26,5 @@ export interface TutorRequest {
   email: string;
   telefone: string;
   endereco: string;
-  cpf: string;
+  cpf: number;
 }
