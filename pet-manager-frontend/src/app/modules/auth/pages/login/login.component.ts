@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../../core/auth/auth.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -32,15 +32,15 @@ export class LoginComponent {
     this.isLoading = true;
     this.errorMessage = '';
 
-    const credentials = this.loginForm.value;
+    const { username, password } = this.loginForm.value;
 
-    this.authService.login(credentials)
+    this.authService.login(username, password)
       .pipe(finalize(() => this.isLoading = false))
       .subscribe({
         next: () => {
           this.router.navigate(['/pets']);
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error(err);
           this.errorMessage = 'Usuário ou senha inválidos.';
         }

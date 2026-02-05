@@ -1,8 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { LoginComponent } from './modules/auth/pages/login/login.component';
-import { PetListComponent } from './modules/pets/pages/pet-list/pet-list.component';
-import { TutorListComponent } from './modules/tutors/pages/tutor-list/tutor-list.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -10,13 +8,13 @@ export const routes: Routes = [
   
   { 
     path: 'pets', 
-    component: PetListComponent, 
+    loadChildren: () => import('./modules/pets/pets.module').then(m => m.PetsModule),
     canActivate: [authGuard] 
   },
 
   { 
     path: 'tutors', 
-    component: TutorListComponent, 
+    loadChildren: () => import('./modules/tutors/tutors.module').then(m => m.TutorsModule),
     canActivate: [authGuard] 
   },
 

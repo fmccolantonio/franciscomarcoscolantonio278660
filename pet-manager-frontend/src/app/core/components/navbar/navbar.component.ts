@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../auth/auth.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -9,7 +9,7 @@ import { AuthService } from '../../auth/auth.service';
   imports: [CommonModule, RouterModule],
   template: `
     <aside class="w-20 lg:w-72 h-screen sticky top-0 flex flex-col bg-white border-r border-slate-100 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50 transition-all duration-300"
-           *ngIf="authService.isLogged()">
+           *ngIf="authService.isLoggedIn()">
       
       <div class="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-slate-50">
         <div class="flex items-center gap-3 cursor-pointer group" routerLink="/pets">
@@ -63,6 +63,5 @@ export class NavbarComponent {
 
   logout() {
     this.authService.logout();
-    this.router.navigate(['/login']);
   }
 }
