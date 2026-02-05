@@ -32,9 +32,7 @@ O projeto foi configurado para ser executado com um único comando de orquestra�
 2. Abra o terminal na raiz do projeto (onde se encontra o arquivo `docker-compose.yml`).
 3. Execute o comando para construir e subir os containers:
 
-    ```bash
-    docker-compose up --build
-    ```
+docker-compose up --build
 
 4. A aplicação estará acessível através do navegador no endereço: `http://localhost:80`
 
